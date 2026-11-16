@@ -1,0 +1,21 @@
+{
+  "name": "agentsentinel-action",
+  "version": "1.0.0",
+  "description": "Zero-trust AST runtime firewall & prompt injection security gate for AI agents, PR tools, and MCP servers.",
+  "type": "module",
+  "main": "index.js",
+  "keywords": [
+    "actions",
+    "ai-agents",
+    "security",
+    "mcp",
+    "prompt-injection",
+    "zero-trust",
+    "ast-interceptor",
+    "code-review",
+    "firewall"
+  ],
+  "author": "Mukesh Biswas (sparkysolutions10-pixel)",
+  "license": "Apache-2.0",
+  "homepage": "https://getagentsentinel.com"
+}
