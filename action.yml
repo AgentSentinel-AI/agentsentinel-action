@@ -18,6 +18,10 @@ inputs:
     description: 'Fail CI build with exit code 1 if critical vulnerabilities are detected'
     required: false
     default: 'true'
+  github-token:
+    description: 'GitHub token for posting audit reports directly on Pull Request comments'
+    required: false
+    default: ''
 
 outputs:
   threats-detected:

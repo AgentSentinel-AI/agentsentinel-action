@@ -22,6 +22,49 @@ function writeStepSummary(markdown) {
   }
 }
 
+async function postPullRequestComment(markdown) {
+  const token = (process.env.INPUT_GITHUB_TOKEN || process.env.GITHUB_TOKEN || '').trim();
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  const repo = process.env.GITHUB_REPOSITORY;
+  if (!token || !eventPath || !repo || !fs.existsSync(eventPath)) {
+    return;
+  }
+
+  try {
+    const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+    const prNumber = event.pull_request?.number || event.issue?.number;
+    if (!prNumber) return;
+
+    const payload = JSON.stringify({ body: markdown });
+    await new Promise((resolve) => {
+      const req = https.request(`https://api.github.com/repos/${repo}/issues/${prNumber}/comments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'User-Agent': `AgentSentinel-Action/${VERSION}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        },
+        timeout: 5000
+      }, (res) => {
+        let respData = '';
+        res.on('data', c => respData += c);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log(`💬 [AgentSentinel] Posted automated Zero-Trust Security Audit comment to PR #${prNumber}`);
+          }
+          resolve();
+        });
+      });
+      req.on('error', () => resolve());
+      req.write(payload);
+      req.end();
+    });
+  } catch (err) {
+    // Graceful fallback
+  }
+}
+
 function setActionOutput(name, value) {
   const outputFile = process.env.GITHUB_OUTPUT;
   if (outputFile && fs.existsSync(path.dirname(outputFile))) {
@@ -195,6 +238,7 @@ async function main() {
   }
 
   writeStepSummary(summary);
+  await postPullRequestComment(summary);
 
   if (violations.length > 0 && isStrict) {
     console.error(`\n❌ [P0 BLOCKED] AgentSentinel gate failed with ${violations.length} critical vulnerability.`);
