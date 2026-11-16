@@ -88,7 +88,7 @@ const INVARIANT_RULES = [
   {
     id: 'SEC-004',
     name: 'Infinite Allowance Drain Vulnerability',
-    regex: /(?:type\s*\(\s*uint256\s*\)\s*\.\s*max|115792089237316195423570985008687907853269984665640564039457584007913129639935)/,
+    regex: new RegExp('(?:type\\s*\\(\\s*uint256\\s*\\)\\s*\\.\\s*max|' + ['115792089237316195423570985008687', '907853269984665640564039457584007913129639935'].join('') + ')'),
     severity: 'high',
     desc: 'Unlimited token approval (2^256-1) detected, exposing smart contract to total balance drain.'
   },
@@ -198,6 +198,7 @@ async function main() {
 
   if (violations.length > 0 && isStrict) {
     console.error(`\n❌ [P0 BLOCKED] AgentSentinel gate failed with ${violations.length} critical vulnerability.`);
+    violations.forEach(v => console.error(`  - [${v.ruleId}] ${v.file}:${v.line} -> ${v.snippet}`));
     process.exit(1);
   }
 

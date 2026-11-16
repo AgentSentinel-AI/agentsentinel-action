@@ -1,0 +1,26 @@
+name: AgentSentinel Security Gate CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-audit:
+    name: Zero-Trust AI Agent Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run AgentSentinel Security Gate
+        run: node index.js
+        env:
+          INPUT_PATH: '.'
+          INPUT_STRICT: 'true'
