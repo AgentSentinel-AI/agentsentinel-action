@@ -22,6 +22,9 @@ Traditional linters (Snyk, SonarQube) only scan static code syntax — **they ca
 - ❌ **Enforces Web3 Invariants** (Infinite token allowances, unbacked bridge mints)
 - ✅ **Drops an Official Security Audit Badge** directly onto your Pull Request.
 
+### 🌐 Trusted by Autonomous Multi-Agent Protocols
+- **[AgentRail Protocol](https://github.com/SorobanAgents/agentrail)** (Autonomous AI Agent Allowance & Settlement on Stellar / Soroban) — Audits every Pull Request with AgentSentinel.
+
 ---
 
 ## 🚀 Quick Start (Add in 30 Seconds)
