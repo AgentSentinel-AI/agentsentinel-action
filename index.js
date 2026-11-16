@@ -23,17 +23,26 @@ function writeStepSummary(markdown) {
 }
 
 async function postPullRequestComment(markdown) {
-  const token = (process.env.INPUT_GITHUB_TOKEN || process.env.GITHUB_TOKEN || '').trim();
+  const token = (process.env['INPUT_GITHUB-TOKEN'] || process.env.INPUT_GITHUB_TOKEN || process.env.GITHUB_TOKEN || '').trim();
   const eventPath = process.env.GITHUB_EVENT_PATH;
   const repo = process.env.GITHUB_REPOSITORY;
-  if (!token || !eventPath || !repo || !fs.existsSync(eventPath)) {
+
+  if (!token) {
+    console.log('ℹ️  [AgentSentinel] No github-token provided; skipping automated PR comment (Step Summary is available).');
+    return;
+  }
+  if (!eventPath || !repo || !fs.existsSync(eventPath)) {
+    console.log('ℹ️  [AgentSentinel] GITHUB_EVENT_PATH not present; skipping PR comment.');
     return;
   }
 
   try {
     const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
     const prNumber = event.pull_request?.number || event.issue?.number;
-    if (!prNumber) return;
+    if (!prNumber) {
+      console.log('ℹ️  [AgentSentinel] Event is not a pull_request or issue; skipping PR comment.');
+      return;
+    }
 
     const payload = JSON.stringify({ body: markdown });
     await new Promise((resolve) => {
@@ -52,16 +61,21 @@ async function postPullRequestComment(markdown) {
         res.on('end', () => {
           if (res.statusCode >= 200 && res.statusCode < 300) {
             console.log(`💬 [AgentSentinel] Posted automated Zero-Trust Security Audit comment to PR #${prNumber}`);
+          } else {
+            console.log(`⚠️ [AgentSentinel] PR comment API returned ${res.statusCode}: ${respData.slice(0, 100)}`);
           }
           resolve();
         });
       });
-      req.on('error', () => resolve());
+      req.on('error', (e) => {
+        console.log(`⚠️ [AgentSentinel] Failed to post PR comment: ${e.message}`);
+        resolve();
+      });
       req.write(payload);
       req.end();
     });
   } catch (err) {
-    // Graceful fallback
+    console.log(`⚠️ [AgentSentinel] Error processing PR event: ${err.message}`);
   }
 }
 
@@ -150,9 +164,9 @@ async function main() {
   console.log('    Zero-Trust AST Firewall & Prompt-Injection Interceptor');
   console.log('========================================================================\n');
 
-  const apiKey = (process.env.INPUT_API_KEY || process.env.AGENTSENTINEL_KEY || '').trim();
-  const targetDir = process.env.INPUT_PATH || process.env.GITHUB_WORKSPACE || '.';
-  const isStrict = (process.env.INPUT_STRICT || 'true').toLowerCase() !== 'false';
+  const apiKey = (process.env['INPUT_API-KEY'] || process.env.INPUT_API_KEY || process.env.AGENTSENTINEL_KEY || '').trim();
+  const targetDir = process.env['INPUT_PATH'] || process.env.INPUT_PATH || process.env.GITHUB_WORKSPACE || '.';
+  const isStrict = (process.env['INPUT_STRICT'] || process.env.INPUT_STRICT || 'true').toLowerCase() !== 'false';
 
   console.log('⚡ [1/3] Verifying AgentSentinel License Gatekeeper...');
   const license = await verifyLicenseStatus(apiKey);
